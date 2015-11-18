@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">EMsgPop</string>
+    <string name="spe_pop">使用特殊方式弹窗</string>
+    <string name="miui">小米,为发热而生!</string>
+    <string name="no_miui">Google大法好!</string>
+    <string name="update">检测更新</string>
+    <string name="help">反馈问题</string>
+    <string name="update_item">正在检测更新</string>
+    <string name="help_item">916321714@qq.com</string>
+</resources>
