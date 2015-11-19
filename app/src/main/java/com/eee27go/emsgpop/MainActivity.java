@@ -3,10 +3,12 @@ package com.eee27go.emsgpop;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.telephony.SmsMessage;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -14,21 +16,24 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
 public class MainActivity extends AppCompatActivity {
 
+
+    private TextView sender;
+    private TextView content;
+
+    IntentFilter receiveFilter;
+    MessageReceiver messageReceiver;
+
     private WindowManager mWindowManager;
     private WindowManager.LayoutParams mLayout;
     private DesktopLayout mDesktopLayout;
-    private long startTime;
-    // 声明屏幕的宽高
-    float x,y;
-    int top;
 
 
     @Override
@@ -36,31 +41,22 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         createWindowManager();
         createDesktopLayout();
 
-        /*test*/
-
-        Button btn = (Button) findViewById(R.id.btn);
-        btn.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                showDesk();
-            }
-        });
+        sender=(TextView)findViewById(R.id.textView);
+        content=(TextView)findViewById(R.id.textView2);
 
 
 
 
-       /* test*/
+        //注册
+        receiveFilter=new IntentFilter();
+        receiveFilter.addAction("android.provider.Telephony.SMS_RECEIVED");
+        messageReceiver=new MessageReceiver();
+        registerReceiver(messageReceiver,receiveFilter);
 
-        BroadcastReceiver BrdRcv;
-        //短信接收者实例化
-        BrdRcv=new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                Log.d("Test","New Msg!");
-            }
-        };//BroadcastReceiver
 
         //switch按钮适配动作
         Switch switch1=(Switch) findViewById(R.id.switch1);
@@ -80,61 +76,12 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
+
     /*创建窗体*/
     private void createDesktopLayout(){
         mDesktopLayout=new DesktopLayout(this);
-        mDesktopLayout.setOnTouchListener(new View.OnTouchListener() {
-            float mTouchStartX;
-            float mTouchStartY;
-
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                x = event.getRawX();
-                y = event.getRawY() - top;
-                Log.i("startP", "startX" + mTouchStartX + "====startY" + mTouchStartY);
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        mTouchStartX = event.getX();
-                        mTouchStartY = event.getY();
-                        Log.i("startP", "startX" + mTouchStartX + "====startY" + mTouchStartY);
-                        long end = System.currentTimeMillis() - startTime;
-
-                        if (end < 300) {
-                            closeDesk();
-                        }
-                        startTime = System.currentTimeMillis();
-                        break;
-                    case MotionEvent.ACTION_MOVE:
-                        mLayout.x = (int) (x - mTouchStartX);
-                        mLayout.y = (int) (y - mTouchStartY);
-                        mWindowManager.updateViewLayout(v, mLayout);
-                        break;
-                    case MotionEvent.ACTION_UP:
-                        mLayout.x = (int) (x - mTouchStartX);
-                        mLayout.y = (int) (y - mTouchStartY);
-                        mWindowManager.updateViewLayout(v, mLayout);
-
-
-                        mTouchStartX = mTouchStartY = 0;
-                        break;
-                }
-                return true;
-            }
-        });
-
     }//createDesktopLayout
-
-
-
-    /*改变焦点*/
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus){
-        super.onWindowFocusChanged(hasFocus);
-        Rect rect=new Rect();
-        getWindow().getDecorView().getWindowVisibleDisplayFrame(rect);
-        top=rect.top;
-        Log.i("top", "" + top);
-    }//onWindowFocusChanged
 
 
     /*显示DesktopLayout*/
@@ -162,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
         mLayout=new WindowManager.LayoutParams();
 
         // 设置窗体显示类型——TYPE_SYSTEM_ALERT(系统提示)
-        mLayout.type=WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
+        mLayout.type=WindowManager.LayoutParams.TYPE_TOAST;
 
 
         // 设置窗体焦点及触摸：
@@ -181,7 +128,41 @@ public class MainActivity extends AppCompatActivity {
 
     }//createWindowManager
 
+    /*创建广播接收器*/
 
+
+    public class MessageReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context,Intent intent){
+           /*Bundle bundle=intent.getExtras();*/
+
+            Object[] pdus=(Object[]) intent.getSerializableExtra("pdus");//提取短信消息
+            SmsMessage[] messages=new SmsMessage[pdus.length];
+            for(int i=0;i<messages.length;i++){
+                messages[i]=SmsMessage.createFromPdu((byte[]) pdus[i]);
+            }
+            String address=messages[0].getOriginatingAddress();//获取发送方号码
+            String fullMessage="";
+            for(SmsMessage message:messages){
+                fullMessage+=message.getMessageBody();//获取短信内容
+            }
+            sender.setText(address);
+            content.setText(fullMessage);
+
+            showDesk();
+
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+
+            }
+
+            closeDesk();
+
+        }
+
+
+    }
 
 
 

@@ -11,6 +11,7 @@ import android.widget.LinearLayout;
  */
 
 
+
 public class DesktopLayout extends LinearLayout{
     public DesktopLayout(Context context){
         super(context);
@@ -25,4 +26,5 @@ public class DesktopLayout extends LinearLayout{
         this.addView(view);
 
     }
+
 }
