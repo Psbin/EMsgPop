@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.PixelFormat;
-import android.graphics.Rect;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.SmsMessage;
@@ -13,8 +12,6 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.Switch;
@@ -25,8 +22,8 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity {
 
 
-    private TextView sender;
-    private TextView content;
+    private static TextView sender;
+    private static TextView content;
 
     IntentFilter receiveFilter;
     MessageReceiver messageReceiver;
@@ -74,6 +71,11 @@ public class MainActivity extends AppCompatActivity {
 
     }//onCreate
 
+
+    protected void onDestory(){
+        super.onDestroy();
+        unregisterReceiver(messageReceiver);
+    }//onDestory
 
 
 
@@ -134,30 +136,27 @@ public class MainActivity extends AppCompatActivity {
     public class MessageReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context,Intent intent){
-           /*Bundle bundle=intent.getExtras();*/
-
-            Object[] pdus=(Object[]) intent.getSerializableExtra("pdus");//提取短信消息
-            SmsMessage[] messages=new SmsMessage[pdus.length];
-            for(int i=0;i<messages.length;i++){
+            Bundle bundle=intent.getExtras();
+                Object[] pdus=(Object[]) bundle.get("pdus");//提取短信消息
+            Log.e("bundle get", "0 has done");
+                SmsMessage[] messages=new SmsMessage[pdus.length];
+            Log.e("pdus.length", "1 has done");
+                for(int i=0;i<messages.length;i++){
                 messages[i]=SmsMessage.createFromPdu((byte[]) pdus[i]);
-            }
+                }
+            Log.e("pdus get", "2 has done");
             String address=messages[0].getOriginatingAddress();//获取发送方号码
             String fullMessage="";
             for(SmsMessage message:messages){
                 fullMessage+=message.getMessageBody();//获取短信内容
             }
-            sender.setText(address);
-            content.setText(fullMessage);
-
+            Log.e("msg get","3 has done");
+            //3蛋4没蛋
+            MainActivity.sender.setText(address);
+            MainActivity.content.setText(fullMessage);
+            Log.e("holder given", "4 has done");
             showDesk();
-
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-
-            }
-
-            closeDesk();
+            Log.e("show", "5 has done");
 
         }
 
