@@ -22,8 +22,8 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity {
 
 
-    private static TextView sender;
-    private static TextView content;
+    private TextView sender;
+    //private TextView content;
 
     IntentFilter receiveFilter;
     MessageReceiver messageReceiver;
@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         createDesktopLayout();
 
         sender=(TextView)findViewById(R.id.textView);
-        content=(TextView)findViewById(R.id.textView2);
+       //content=(TextView)findViewById(R.id.textView2);
 
 
 
@@ -146,14 +146,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             Log.e("pdus get", "2 has done");
             String address=messages[0].getOriginatingAddress();//获取发送方号码
-            String fullMessage="";
+            /*String fullMessage="";
             for(SmsMessage message:messages){
                 fullMessage+=message.getMessageBody();//获取短信内容
-            }
+            }*/
             Log.e("msg get","3 has done");
-            //3蛋4没蛋
-            MainActivity.sender.setText(address);
-            MainActivity.content.setText(fullMessage);
+            //3蛋4没蛋 问题大约在Mainactivity里的sender 跟layout
+            sender.setText(address);
+           // content.setText(fullMessage);
             Log.e("holder given", "4 has done");
             showDesk();
             Log.e("show", "5 has done");
