@@ -12,7 +12,6 @@
 
 
 
-//发信人
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
@@ -38,7 +37,7 @@
         android:background="?android:attr/listDivider"
         android:layout_alignBottom="@+id/linearLayout" />
 
-//内容
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
@@ -70,7 +69,7 @@
 
 
 
-//发送给
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
@@ -105,7 +104,7 @@
 
 
     </LinearLayout>
-//发送文字
+
     <EditText
         android:id="@+id/msg_input"
         android:layout_width="wrap_content"
@@ -124,7 +123,7 @@
         android:layout_alignBottom="@+id/msg_input"
         android:layout_alignParentEnd="true" />
 
-//状态
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
