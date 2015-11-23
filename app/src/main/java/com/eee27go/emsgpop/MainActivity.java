@@ -1,20 +1,22 @@
 package com.eee27go.emsgpop;
 
+import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.PixelFormat;
+import android.provider.Settings;
+import android.service.carrier.CarrierMessagingService;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.WindowManager;
-import android.widget.CompoundButton;
-import android.widget.Switch;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,14 +25,28 @@ public class MainActivity extends AppCompatActivity {
 
 
     private TextView sender;
-    //private TextView content;
+    private TextView content;
+    private EditText sendto;
+    private EditText msg_input;
+    private Button sendbtn;
+
+    private TextView dlv;
+
+
+    String SE_S_ACT="SENT_SMS_ACTION";
+    String DLV_S_ACT="DELIVERED_SMS_ACTION";
 
     IntentFilter receiveFilter;
     MessageReceiver messageReceiver;
 
-    private WindowManager mWindowManager;
-    private WindowManager.LayoutParams mLayout;
-    private DesktopLayout mDesktopLayout;
+    Intent sentIntent=new Intent(SE_S_ACT);
+    PendingIntent sentPI=PendingIntent.getBroadcast(
+            getApplicationContext(),0,sentIntent,0);
+
+    Intent deliveryIntent=new Intent(DLV_S_ACT);
+    PendingIntent deliverPI=PendingIntent.getBroadcast(
+            getApplicationContext(),0,deliveryIntent,0);
+
 
 
     @Override
@@ -39,36 +55,85 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        createWindowManager();
-        createDesktopLayout();
 
-        sender=(TextView)findViewById(R.id.textView);
-       //content=(TextView)findViewById(R.id.textView2);
+        sender=(TextView)findViewById(R.id.sender);
+        content=(TextView)findViewById(R.id.content);
+        sendto=(EditText)findViewById(R.id.sendto);
+        msg_input=(EditText)findViewById(R.id.msg_input);
+        sendbtn=(Button)findViewById(R.id.sendbtn);
+
+
+        dlv=(TextView)findViewById(R.id.msg_get);
 
 
 
 
-        //注册
+
+        sendbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SmsManager smsManager=SmsManager.getDefault();
+                smsManager.sendTextMessage(sendto.getText().toString(),null,
+                        msg_input.getText().toString(), sentPI,
+                        deliverPI);
+            }
+        });
+
+
+
+
+        //短信接收器注册
         receiveFilter=new IntentFilter();
         receiveFilter.addAction("android.provider.Telephony.SMS_RECEIVED");
         messageReceiver=new MessageReceiver();
         registerReceiver(messageReceiver,receiveFilter);
 
 
-        //switch按钮适配动作
+
+
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                switch(getResultCode()){
+                    case Activity.RESULT_OK:
+                        Toast.makeText(context,getString(R.string.succ_send),Toast.LENGTH_SHORT).show();
+                        break;
+                    case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
+                        Toast.makeText(context,getString(R.string.fail_gen),Toast.LENGTH_SHORT).show();
+                        break;
+                    case SmsManager.RESULT_ERROR_RADIO_OFF:
+                        Toast.makeText(context,getString(R.string.fail_radio),Toast.LENGTH_SHORT).show();
+                        break;
+                    case SmsManager.RESULT_ERROR_NULL_PDU:
+                        Toast.makeText(context,getString(R.string.fail_null),Toast.LENGTH_SHORT).show();
+                        break;
+                }
+            }
+        },new IntentFilter(SE_S_ACT));
+
+
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context _context, Intent _intent) {
+                dlv.setText(getString(R.string.msg_get));
+            }
+        },new IntentFilter(DLV_S_ACT));
+
+
+        /*
+        switch按钮适配动作
         Switch switch1=(Switch) findViewById(R.id.switch1);
         switch1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
                     Toast.makeText(MainActivity.this, R.string.miui, Toast.LENGTH_SHORT).show();
-
                 } else{
                     Toast.makeText(MainActivity.this, R.string.no_miui, Toast.LENGTH_SHORT).show();
                 }
             }
         });
-
+        */
     }//onCreate
 
 
@@ -78,90 +143,31 @@ public class MainActivity extends AppCompatActivity {
     }//onDestory
 
 
-
-
-    /*创建窗体*/
-    private void createDesktopLayout(){
-        mDesktopLayout=new DesktopLayout(this);
-    }//createDesktopLayout
-
-
-    /*显示DesktopLayout*/
-    private void showDesk(){
-        mWindowManager.addView(mDesktopLayout,mLayout);
-        finish();
-    }//showDesk
-
-
-    /*关闭DesktopLayout*/
-    private void closeDesk(){
-        mWindowManager.removeView(mDesktopLayout);
-        finish();
-    }//closeDesk
-
-
-    /*设置WindowsManager*/
-    private void createWindowManager(){
-
-        // 取得系统窗体
-        mWindowManager=(WindowManager) getApplicationContext()
-                .getSystemService(Context.WINDOW_SERVICE);
-
-        // 窗体的布局样式
-        mLayout=new WindowManager.LayoutParams();
-
-        // 设置窗体显示类型——TYPE_SYSTEM_ALERT(系统提示)
-        mLayout.type=WindowManager.LayoutParams.TYPE_TOAST;
-
-
-        // 设置窗体焦点及触摸：
-        // FLAG_NOT_FOCUSABLE(不能获得按键输入焦点)
-        mLayout.flags=WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-
-        // 设置显示的模式
-        mLayout.format= PixelFormat.RGBA_8888;
-
-        // 设置对齐的方法
-        mLayout.gravity= Gravity.TOP |Gravity.START;
-
-        // 设置窗体宽度和高度
-        mLayout.width=WindowManager.LayoutParams.MATCH_PARENT;
-        mLayout.height=WindowManager.LayoutParams.WRAP_CONTENT;
-
-    }//createWindowManager
-
-    /*创建广播接收器*/
-
+    /*接收短信部分*/
 
     public class MessageReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context,Intent intent){
             Bundle bundle=intent.getExtras();
-                Object[] pdus=(Object[]) bundle.get("pdus");//提取短信消息
-            Log.e("bundle get", "0 has done");
-                SmsMessage[] messages=new SmsMessage[pdus.length];
-            Log.e("pdus.length", "1 has done");
-                for(int i=0;i<messages.length;i++){
+            Object[] pdus=(Object[]) bundle.get("pdus");//提取短信消息
+
+            SmsMessage[] messages=new SmsMessage[pdus.length];
+
+            for(int i=0;i<messages.length;i++){
                 messages[i]=SmsMessage.createFromPdu((byte[]) pdus[i]);
-                }
-            Log.e("pdus get", "2 has done");
+            }
+
             String address=messages[0].getOriginatingAddress();//获取发送方号码
-            /*String fullMessage="";
+            String fullMessage="";
             for(SmsMessage message:messages){
                 fullMessage+=message.getMessageBody();//获取短信内容
-            }*/
-            Log.e("msg get","3 has done");
-            //3蛋4没蛋 问题大约在Mainactivity里的sender 跟layout
+            }
+
             sender.setText(address);
-           // content.setText(fullMessage);
-            Log.e("holder given", "4 has done");
-            showDesk();
-            Log.e("show", "5 has done");
-
+            content.setText(fullMessage);
         }
-
-
     }
+
 
 
 
