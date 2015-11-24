@@ -17,8 +17,10 @@
     <string name="msg_main">内容:</string>
     <string name="msg_to">发送给:</string>
     <string name="msg_send">发送</string>
-    <string name="msg_state">发送状态</string>
+    <string name="msg_state">对方接收状态</string>
+    <string name="send_state">发送状态</string>
     
+    <string name="not_send">尚未发送</string>
     <string name="succ_send">发送成功!</string>
     <string name="fail_gen">莫名失败</string>
     <string name="fail_radio">失败:没信号</string>

@@ -31,7 +31,8 @@ public class MainActivity extends AppCompatActivity {
     private EditText sendto;
     private EditText msg_input;
     private Button sendbtn;
-
+    private TextView dlv_state;
+    private TextView send_state;
 
 
 
@@ -56,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
         msg_input=(EditText)findViewById(R.id.msg_input);
         sendbtn=(Button)findViewById(R.id.sendbtn);
 
+        dlv_state=(TextView)findViewById(R.id.msg_get);
+        send_state=(TextView)findViewById(R.id.send_state);
 
 
 
@@ -153,20 +156,16 @@ public class MainActivity extends AppCompatActivity {
             public void onReceive(Context context, Intent intent) {
                 switch (getResultCode()){
                     case Activity.RESULT_OK:
-                        Toast.makeText(getBaseContext(),getString(R.string.succ_send)
-                        ,Toast.LENGTH_SHORT).show();
+                        send_state.setText(getString(R.string.succ_send));
                         break;
                     case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-                        Toast.makeText(getBaseContext(),getString(R.string.fail_gen)
-                                ,Toast.LENGTH_SHORT).show();
+                        send_state.setText(getString(R.string.fail_gen));
                         break;
                     case SmsManager.RESULT_ERROR_RADIO_OFF:
-                        Toast.makeText(getBaseContext(),getString(R.string.fail_radio)
-                                ,Toast.LENGTH_SHORT).show();
+                        send_state.setText(getString(R.string.fail_radio));
                         break;
                     case SmsManager.RESULT_ERROR_NULL_PDU:
-                        Toast.makeText(getBaseContext(),getString(R.string.fail_null)
-                                ,Toast.LENGTH_SHORT).show();
+                        send_state.setText(getString(R.string.fail_null));
                         break;
                 }
             }
@@ -176,8 +175,7 @@ public class MainActivity extends AppCompatActivity {
         registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Toast.makeText(getBaseContext(),getString(R.string.msg_get)
-                ,Toast.LENGTH_SHORT).show();
+                dlv_state.setText(getString(R.string.msg_get));
             }
         },new IntentFilter(DLV_S_ACT));
 
