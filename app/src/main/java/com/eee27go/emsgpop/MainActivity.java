@@ -20,6 +20,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,22 +32,14 @@ public class MainActivity extends AppCompatActivity {
     private EditText msg_input;
     private Button sendbtn;
 
-    private TextView dlv;
 
 
-    String SE_S_ACT="SENT_SMS_ACTION";
-    String DLV_S_ACT="DELIVERED_SMS_ACTION";
 
     IntentFilter receiveFilter;
     MessageReceiver messageReceiver;
 
-    Intent sentIntent=new Intent(SE_S_ACT);
-    PendingIntent sentPI=PendingIntent.getBroadcast(
-            getApplicationContext(),0,sentIntent,0);
 
-    Intent deliveryIntent=new Intent(DLV_S_ACT);
-    PendingIntent deliverPI=PendingIntent.getBroadcast(
-            getApplicationContext(),0,deliveryIntent,0);
+
 
 
 
@@ -63,19 +57,18 @@ public class MainActivity extends AppCompatActivity {
         sendbtn=(Button)findViewById(R.id.sendbtn);
 
 
-        dlv=(TextView)findViewById(R.id.msg_get);
-
-
-
 
 
         sendbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SmsManager smsManager=SmsManager.getDefault();
-                smsManager.sendTextMessage(sendto.getText().toString(),null,
-                        msg_input.getText().toString(), sentPI,
-                        deliverPI);
+                String phoneNO=sendto.getText().toString();
+                String message=msg_input.getText().toString();
+
+                if(phoneNO.length()>0&&message.length()>0){
+                    sendSMS(phoneNO,message);
+                }else
+                    Toast.makeText(getBaseContext(),"wtf",Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -88,36 +81,6 @@ public class MainActivity extends AppCompatActivity {
         messageReceiver=new MessageReceiver();
         registerReceiver(messageReceiver,receiveFilter);
 
-
-
-
-        registerReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                switch(getResultCode()){
-                    case Activity.RESULT_OK:
-                        Toast.makeText(context,getString(R.string.succ_send),Toast.LENGTH_SHORT).show();
-                        break;
-                    case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
-                        Toast.makeText(context,getString(R.string.fail_gen),Toast.LENGTH_SHORT).show();
-                        break;
-                    case SmsManager.RESULT_ERROR_RADIO_OFF:
-                        Toast.makeText(context,getString(R.string.fail_radio),Toast.LENGTH_SHORT).show();
-                        break;
-                    case SmsManager.RESULT_ERROR_NULL_PDU:
-                        Toast.makeText(context,getString(R.string.fail_null),Toast.LENGTH_SHORT).show();
-                        break;
-                }
-            }
-        },new IntentFilter(SE_S_ACT));
-
-
-        registerReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context _context, Intent _intent) {
-                dlv.setText(getString(R.string.msg_get));
-            }
-        },new IntentFilter(DLV_S_ACT));
 
 
         /*
@@ -145,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
 
     /*接收短信部分*/
 
-    public class MessageReceiver extends BroadcastReceiver {
+    private class MessageReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context,Intent intent){
             Bundle bundle=intent.getExtras();
@@ -171,6 +134,66 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+    /*发送短信*/
+    private void sendSMS(String phoneNumber,String message){
+        SmsManager sms=SmsManager.getDefault();
+
+        String SE_S_ACT="SENT_SMS_ACTION";
+        String DLV_S_ACT="DELIVERED_SMS_ACTION";
+
+        Intent sendIntent=new Intent(SE_S_ACT);
+        PendingIntent sentPI=PendingIntent.getBroadcast(this,0,sendIntent,0);
+
+
+        Intent deliverIntent=new Intent(DLV_S_ACT);
+        PendingIntent deliverPI=PendingIntent.getBroadcast(this,0,deliverIntent,0);
+
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                switch (getResultCode()){
+                    case Activity.RESULT_OK:
+                        Toast.makeText(getBaseContext(),getString(R.string.succ_send)
+                        ,Toast.LENGTH_SHORT).show();
+                        break;
+                    case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
+                        Toast.makeText(getBaseContext(),getString(R.string.fail_gen)
+                                ,Toast.LENGTH_SHORT).show();
+                        break;
+                    case SmsManager.RESULT_ERROR_RADIO_OFF:
+                        Toast.makeText(getBaseContext(),getString(R.string.fail_radio)
+                                ,Toast.LENGTH_SHORT).show();
+                        break;
+                    case SmsManager.RESULT_ERROR_NULL_PDU:
+                        Toast.makeText(getBaseContext(),getString(R.string.fail_null)
+                                ,Toast.LENGTH_SHORT).show();
+                        break;
+                }
+            }
+        },new IntentFilter(SE_S_ACT));
+
+
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Toast.makeText(getBaseContext(),getString(R.string.msg_get)
+                ,Toast.LENGTH_SHORT).show();
+            }
+        },new IntentFilter(DLV_S_ACT));
+
+
+        if(message.length()>70){
+            ArrayList<String> msgs=sms.divideMessage(message);
+            for (String msg:msgs){
+                sms.sendTextMessage(phoneNumber,null,msg,sentPI,deliverPI);
+            }
+        }else{
+            sms.sendTextMessage(phoneNumber,null,message,sentPI,deliverPI);
+        }
+
+
+
+    }
 
 
 
