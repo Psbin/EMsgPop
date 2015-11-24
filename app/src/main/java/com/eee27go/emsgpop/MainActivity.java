@@ -12,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
+import android.text.method.ScrollingMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -60,7 +61,9 @@ public class MainActivity extends AppCompatActivity {
         dlv_state=(TextView)findViewById(R.id.msg_get);
         send_state=(TextView)findViewById(R.id.send_state);
 
-
+        sender.setTextSize(18);
+        content.setTextSize(18);
+        content.setMovementMethod(ScrollingMovementMethod.getInstance());
 
         sendbtn.setOnClickListener(new View.OnClickListener() {
             @Override
